@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+// import sharp from 'sharp';
 
 export const runtime = 'nodejs';
 
@@ -15,6 +15,9 @@ export async function POST(req) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    const sharpModule = await import('sharp');
+    const sharp = sharpModule.default ?? sharpModule;
 
     const metadata = await sharp(buffer).metadata();
     const originalWidth = metadata.width;
