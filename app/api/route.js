@@ -1,5 +1,3 @@
-// import sharp from 'sharp';
-
 export const runtime = 'nodejs';
 
 export async function POST(req) {
@@ -8,7 +6,7 @@ export async function POST(req) {
     const file = formData.get('image');
 
     if (!file) {
-      return new Response(JSON.stringify({ error: 'Файл не знайдено' }), {
+      return new Response(JSON.stringify({ error: 'File not found' }), {
         status: 400,
       });
     }
@@ -16,25 +14,19 @@ export async function POST(req) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const sharpModule = await import('sharp');
-    const sharp = sharpModule.default ?? sharpModule;
-    console.log('sharp :>> ', sharp);
+    const { Transformer } = await import('@napi-rs/image');
 
-    const metadata = await sharp(buffer).metadata();
+    const image = new Transformer(buffer);
+
+    const metadata = await image.metadata();
     const originalWidth = metadata.width;
 
     if (!originalWidth) {
       return new Response(
-        JSON.stringify({ error: 'Image width is note defined' }),
-        {
-          status: 400,
-        }
+        JSON.stringify({ error: 'Image width is not defined' }),
+        { status: 400 }
       );
     }
-
-    // 4️⃣ Створюємо дві версії — 1x (половина ширини) та 2x (оригінал)
-    const width1x = Math.floor(originalWidth / 2);
-    const width2x = originalWidth;
 
     const ext = 'webp';
     const baseName = file.name
@@ -43,36 +35,35 @@ export async function POST(req) {
       .slice(1)
       .reverse()
       .join('.');
+    const width1x = Math.floor(originalWidth / 2);
+    const width2x = originalWidth;
 
-    const image1x = await sharp(buffer)
-      .resize({ width: width1x }) // можна задати потрібну ширину
-      .toFormat(ext)
-      .toBuffer();
+    const image1xBuffer = await image.resize({ width: width1x })[ext]();
 
-    const image2x = await sharp(buffer)
-      .resize({ width: width2x })
-      .toFormat(ext)
-      .toBuffer();
+    const image2xBuffer = await image.resize({ width: width2x })[ext]();
+    const contentType = `image/${ext}`;
 
     const responsePayload = [
       {
         name: `${baseName}@1x.${ext}`,
-        data: `data:image/jpeg;base64,${image1x.toString('base64')}`,
+        data: `data:${contentType};base64,${image1xBuffer.toString('base64')}`,
       },
       {
         name: `${baseName}@2x.${ext}`,
-        data: `data:image/jpeg;base64,${image2x.toString('base64')}`,
+        data: `data:${contentType};base64,${image2xBuffer.toString('base64')}`,
       },
     ];
 
-    // return NextResponse.json('Response OK');
     return new Response(JSON.stringify(responsePayload), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': `${contentType}` },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Server error' }), {
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({ error: error.message ?? 'Server error' }),
+      {
+        status: error.status ?? 500,
+      }
+    );
   }
 }
