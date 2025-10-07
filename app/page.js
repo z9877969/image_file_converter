@@ -7,7 +7,10 @@ export default function Home() {
     <div className={styles.page}>
       <main className={styles.main}>
         <h1>File converter</h1>
-        <p>Convert images to webp with @1x, @2x retina displays</p>
+        <p>
+          Convert images to <strong>WEBP</strong> with <strong>@1x</strong>,{' '}
+          <strong>@2x</strong> retina displays
+        </p>
 
         <FileField />
       </main>

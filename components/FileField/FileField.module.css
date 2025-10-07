@@ -3,7 +3,18 @@
 
   & label {
     font-size: inherit;
+    display: flex;
   }
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.loader {
+  position: absolute;
+  bottom: calc(66%);
+  right: 90%;
 }
 
 .input {
