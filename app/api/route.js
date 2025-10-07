@@ -1,13 +1,9 @@
 import sharp from 'sharp';
-import { nextServer } from '@/lib/api/nextServerApi';
-import { NextResponse } from 'next/server';
 
-export const POST = async (req) => {
+export async function POST(req) {
   try {
     const formData = await req.formData();
     const file = formData.get('image');
-
-    console.log('file :>> ', file);
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'Файл не знайдено' }), {
@@ -23,7 +19,7 @@ export const POST = async (req) => {
 
     if (!originalWidth) {
       return new Response(
-        JSON.stringify({ error: 'Не вдалося визначити ширину зображення' }),
+        JSON.stringify({ error: 'Image width is note defined' }),
         {
           status: 400,
         }
@@ -41,8 +37,6 @@ export const POST = async (req) => {
       .slice(1)
       .reverse()
       .join('.');
-
-    console.log('baseName :>> ', baseName);
 
     const image1x = await sharp(buffer)
       .resize({ width: width1x }) // можна задати потрібну ширину
@@ -71,9 +65,8 @@ export const POST = async (req) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Помилка при обробці зображення:', error);
-    return new Response(JSON.stringify({ error: 'Помилка сервера' }), {
+    return new Response(JSON.stringify({ error: 'Server error' }), {
       status: 500,
     });
   }
-};
+}
