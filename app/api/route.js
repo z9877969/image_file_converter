@@ -18,6 +18,7 @@ export async function POST(req) {
 
     const sharpModule = await import('sharp');
     const sharp = sharpModule.default ?? sharpModule;
+    console.log('sharp :>> ', sharp);
 
     const metadata = await sharp(buffer).metadata();
     const originalWidth = metadata.width;
